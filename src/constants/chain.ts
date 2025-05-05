@@ -7,7 +7,7 @@ const customChain = {
     ...seiLocal,
     rpcUrls: {
         default: {
-            http: ["http://3.22.98.183:8545"],
+            http: ["https://evm-rpc.psu-evm-test-5.sei.io"],
         },
     },
 }
