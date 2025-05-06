@@ -65,22 +65,29 @@ function Examples() {
 
     useEffect(() => {
         const load = async () => {
-        try {
-            await loadWasmExec();
-            console.log("wasm_exec.js loaded successfully");
-        } catch (e) {
-            console.error("Failed to load wasm_exec.js", e);
-        }
+            try {
+                await loadWasmExec();
+                console.log("wasm_exec.js loaded successfully");
+            } catch (e) {
+                console.error("Failed to load wasm_exec.js", e);
+            }
         };
-    
+
         load(); // Call the async loader
     }, []);
+
+    // Fetch once on mount (when publicClient is ready)
+    useEffect(() => {
+        if (publicClient) {
+            fetchRoundData();
+        }
+    }, [publicClient]);
 
     useEffect(() => {
         if (activeTab === "auction") {
             fetchRoundData();
             const interval = setInterval(fetchRoundData, 10000); // 10 seconds
-    
+
             return () => clearInterval(interval); // cleanup
         }
     }, [publicClient, activeTab]);
@@ -96,7 +103,6 @@ function Examples() {
 
         const roundCount = Number(numRound);
         setNumRounds(roundCount); // still update state if others need it
-
         const statusMap: Record<number, { settled: boolean, closed: boolean, prize: bigint }> = {};
         for (let round = 0; round < Number(numRounds); round++) {
             try {
@@ -487,7 +493,11 @@ function Examples() {
                 args: [BigInt(round)],
             }) as Bid[];
 
-            setBidsByRound((prev) => ({ ...prev, [round]: [...bids] }));
+            setBidsByRound((prev) => {
+                const updated = { ...prev };
+                updated[round] = bids.map(b => ({ ...b }));
+                return updated;
+            });
         } catch (e) {
             console.error(`Failed to fetch bids for round ${round}`, e);
         }
@@ -504,7 +514,8 @@ function Examples() {
                 functionName: "submitBid",
                 args: [BigInt(round), txHash as `0x${string}`],
             });
-
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            await getBids(round);
             console.log("Bid submitted, tx:", result);
         } catch (e) {
             console.error("Bid submission failed:", e);
@@ -684,6 +695,8 @@ function Examples() {
                 args: [BigInt(round), bid.bidder, amount],
             });
         }
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        await getBids(round);
     };
 
     const settleRound = async (round: number) => {
@@ -795,7 +808,7 @@ function Examples() {
             setLeaderboard(result);
         } catch (e) {
             console.error("Failed to fetch leaderboard", e);
-        } 
+        }
     };
 
     const closeBid = async (round: number) => {
