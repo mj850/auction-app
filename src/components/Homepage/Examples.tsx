@@ -784,7 +784,7 @@ function Examples() {
             for (let i = 0; i < addresses.length; i++) {
                 const addr = addresses[i];
                 const balance = balances[i];
-                map.set(addr, (map.get(addr) || 0n) + balance);
+                map.set(addr, balance);
             }
 
             const result = Array.from(map.entries()).map(([address, balance]) => ({ address, balance }));
