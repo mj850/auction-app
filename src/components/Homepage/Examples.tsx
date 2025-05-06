@@ -75,7 +75,7 @@ function Examples() {
     
         load(); // Call the async loader
     }, []);
-    
+
     useEffect(() => {
         const fetchNumRounds = async () => {
             if (!publicClient) return;
@@ -626,7 +626,7 @@ function Examples() {
     }
 
     const revealBids = async (round: number) => {
-        if (!contractOwner || !publicClient || address != contractOwner) return;
+        if (!contractOwner || !publicClient || address?.toLowerCase() != contractOwner.toLowerCase()) return;
 
         const api = new ConfidentialTransfersWrapper();
         await api.initialize();
@@ -639,7 +639,7 @@ function Examples() {
             let amount = 0n;
             try {
                 const tx = await publicClient.getTransaction({ hash: bid.txHash });
-                if (tx.from != bid.bidder) {
+                if (tx.from.toLowerCase() != bid.bidder.toLowerCase()) {
                     console.warn("Tx from is not bidder", tx.from, bid.bidder)
                     await writeContractAsync({
                         address: AuctionAddress,
