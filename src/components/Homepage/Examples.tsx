@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useAccount, usePublicClient, useWriteContract, useSignMessage } from "wagmi";
 import { CtAccountResponse, getApplyPendingBalancesViemArgs, getInitializeAccountViemArgs, queryAccountViem, decryptAccountViem, getDenomToSignViem, getWithdrawFromPrivateBalanceViemArgs, DecryptedAccount, getDepositToPrivateBalanceViemArgs, getConfidentialTransferViemArgs, ConfidentialTransfersWrapper } from "@sei-js/confidential-transfers"
-import { auctionAbi } from './abi'; // Adjust the import path as necessary
 
 import "./Homepage.css";
 import { decodeFunctionData, hexToBytes } from "viem";
@@ -71,6 +70,7 @@ function Examples() {
                 address: AuctionAddress,
                 abi: auctionAbi,
                 functionName: "numRounds",
+                args: [],
             });
             console.log("NUM ROUNDS", numRound)
             setNumRounds(Number(numRound));
@@ -745,6 +745,7 @@ function Examples() {
                 address: AuctionAddress,
                 abi: auctionAbi,
                 functionName: "getAllBidderBalances",
+                args: [],
             }) as [string[], bigint[]];
 
             const map = new Map<string, bigint>();
