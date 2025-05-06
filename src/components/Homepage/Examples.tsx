@@ -77,51 +77,63 @@ function Examples() {
     }, []);
 
     useEffect(() => {
-        const fetchNumRounds = async () => {
-            if (!publicClient) return;
-            const numRound = await publicClient.readContract({
-                address: AuctionAddress,
-                abi: auctionAbi,
-                functionName: "numRounds",
-                args: [],
-            });
-            console.log("NUM ROUNDS", numRound)
-            setNumRounds(Number(numRound));
-        };
-
-        const fetchRoundData = async () => {
-            if (!publicClient) return;
-            const statusMap: Record<number, { settled: boolean, closed: boolean, prize: bigint }> = {};
-            await fetchNumRounds();
-            for (let round = 0; round < Number(numRounds); round++) {
-                try {
-                    const roundStatus = await publicClient.readContract({
-                        address: AuctionAddress,
-                        abi: auctionAbi,
-                        functionName: "rounds",
-                        args: [BigInt(round)],
-                    })
-                    console.log("ROUND STATUS", roundStatus)
-                    if (Array.isArray(roundStatus) && typeof roundStatus[2] === 'boolean' && typeof roundStatus[3] === 'boolean' && typeof roundStatus[0] === 'bigint') {
-                        statusMap[round] = {
-                            settled: roundStatus[2],
-                            closed: roundStatus[3],
-                            prize: roundStatus[0],
-                        };
-                    } else {
-                        console.error(`Unexpected roundStatus format for round ${round}`, roundStatus);
-                    }
-                } catch (e) {
-                    console.error(`Failed to fetch round ${round} status`, e);
-                }
-            }
-            setRoundStatuses(statusMap);
-        };
         if (activeTab === "auction") {
             fetchRoundData();
+            const interval = setInterval(fetchRoundData, 10000); // 10 seconds
+    
+            return () => clearInterval(interval); // cleanup
         }
-
     }, [publicClient, activeTab]);
+
+    const fetchNumRounds = async () => {
+        if (!publicClient) return;
+        const numRound = await publicClient.readContract({
+            address: AuctionAddress,
+            abi: auctionAbi,
+            functionName: "numRounds",
+            args: [],
+        });
+        console.log("NUM ROUNDS", numRound)
+        setNumRounds(Number(numRound));
+    };
+
+    const fetchRoundData = async () => {
+        if (!publicClient) return;
+        const numRound = await publicClient.readContract({
+            address: AuctionAddress,
+            abi: auctionAbi,
+            functionName: "numRounds",
+            args: [],
+        });
+
+        const roundCount = Number(numRound);
+        setNumRounds(roundCount); // still update state if others need it
+
+        const statusMap: Record<number, { settled: boolean, closed: boolean, prize: bigint }> = {};
+        for (let round = 0; round < Number(numRounds); round++) {
+            try {
+                const roundStatus = await publicClient.readContract({
+                    address: AuctionAddress,
+                    abi: auctionAbi,
+                    functionName: "rounds",
+                    args: [BigInt(round)],
+                })
+                console.log("ROUND STATUS", roundStatus)
+                if (Array.isArray(roundStatus) && typeof roundStatus[2] === 'boolean' && typeof roundStatus[3] === 'boolean' && typeof roundStatus[0] === 'bigint') {
+                    statusMap[round] = {
+                        settled: roundStatus[2],
+                        closed: roundStatus[3],
+                        prize: roundStatus[0],
+                    };
+                } else {
+                    console.error(`Unexpected roundStatus format for round ${round}`, roundStatus);
+                }
+            } catch (e) {
+                console.error(`Failed to fetch round ${round} status`, e);
+            }
+        }
+        setRoundStatuses(statusMap);
+    };
 
     // Example of using precompiles to query native Sei modules.
     const getConfidentialAccount = async () => {
@@ -150,7 +162,7 @@ function Examples() {
             message: ctdenom
         })
         const timeStart = performance.now();
-        const decryptedAccount = await decryptAccountViem(signedDenom, account, true);
+        const decryptedAccount = await decryptAccountViem(signedDenom, account, false);
         const timeEnd = performance.now();
         console.log(`Time taken: ${timeEnd - timeStart} milliseconds`);
         setDecryptedAccount(decryptedAccount);
@@ -584,6 +596,7 @@ function Examples() {
                             <>
                                 <button onClick={() => revealBids(round)}>Reveal Bids</button>
                                 <button onClick={() => settleRound(round)}>Settle</button>
+                                <button onClick={() => closeBid(round)}>Close Bid</button>
                             </>
                         )}
                     </div>
@@ -692,6 +705,7 @@ function Examples() {
             functionName: "settleRound",
             args: [BigInt(round)],
         });
+        await fetchRoundData();
     }
 
     /**
@@ -794,6 +808,16 @@ function Examples() {
         } catch (e) {
             console.error("Failed to fetch leaderboard", e);
         } 
+    };
+
+    const closeBid = async (round: number) => {
+        await writeContractAsync({
+            address: AuctionAddress,
+            abi: auctionAbi,
+            functionName: "closeRound",
+            args: [BigInt(round)],
+        });
+        await fetchRoundData();
     };
 
     return (
