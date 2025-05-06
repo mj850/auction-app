@@ -64,6 +64,19 @@ function Examples() {
     }, [publicClient, activeTab]);
 
     useEffect(() => {
+        const load = async () => {
+        try {
+            await loadWasmExec();
+            console.log("wasm_exec.js loaded successfully");
+        } catch (e) {
+            console.error("Failed to load wasm_exec.js", e);
+        }
+        };
+    
+        load(); // Call the async loader
+    }, []);
+    
+    useEffect(() => {
         const fetchNumRounds = async () => {
             if (!publicClient) return;
             const numRound = await publicClient.readContract({
@@ -596,7 +609,7 @@ function Examples() {
         }
     }
 
-    function loadWasmExec(): Promise<void> {
+    async function loadWasmExec(): Promise<void> {
         return new Promise((resolve, reject) => {
             const existingScript = document.querySelector('script[src="/wasm_exec.cjs"]');
             if (existingScript) {
@@ -615,7 +628,6 @@ function Examples() {
     const revealBids = async (round: number) => {
         if (!contractOwner || !publicClient || address != contractOwner) return;
 
-        await loadWasmExec();
         const api = new ConfidentialTransfersWrapper();
         await api.initialize();
         const denomToSign = getDenomToSignViem("usei")
