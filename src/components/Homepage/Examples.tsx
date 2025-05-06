@@ -595,15 +595,33 @@ function Examples() {
             console.log(e);
         }
     }
+    
+    function loadWasmExec(): Promise<void> {
+        return new Promise((resolve, reject) => {
+            const existingScript = document.querySelector('script[src="/wasm_exec.cjs"]');
+            if (existingScript) {
+                resolve(); // already loaded
+                return;
+            }
+
+            const script = document.createElement("script");
+            script.src = "/wasm_exec.cjs"; // served from /public
+            script.onload = () => resolve();
+            script.onerror = () => reject(new Error("Failed to load wasm_exec.cjs"));
+            document.body.appendChild(script);
+        });
+    }
+
     const revealBids = async (round: number) => {
         if (!contractOwner || !publicClient || address != contractOwner) return;
 
+        await loadWasmExec();
         const api = new ConfidentialTransfersWrapper();
         await api.initialize();
         const denomToSign = getDenomToSignViem("usei")
         const signedDenom = await signMessage.signMessageAsync({ account: address, message: denomToSign });
         const signedDenomBytes = hexToBytes(signedDenom);
-        
+
         const bids = bidsByRound[round] || [];
         for (const bid of bids) {
             let amount = 0n;
@@ -619,7 +637,7 @@ function Examples() {
                     });
                     continue;
                 }
-                
+
                 console.log(tx)
                 const amounts = extractTransferAmounts(tx);
                 console.log(amounts)
