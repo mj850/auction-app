@@ -85,18 +85,6 @@ function Examples() {
         }
     }, [publicClient, activeTab]);
 
-    const fetchNumRounds = async () => {
-        if (!publicClient) return;
-        const numRound = await publicClient.readContract({
-            address: AuctionAddress,
-            abi: auctionAbi,
-            functionName: "numRounds",
-            args: [],
-        });
-        console.log("NUM ROUNDS", numRound)
-        setNumRounds(Number(numRound));
-    };
-
     const fetchRoundData = async () => {
         if (!publicClient) return;
         const numRound = await publicClient.readContract({
