@@ -595,7 +595,7 @@ function Examples() {
             console.log(e);
         }
     }
-    
+
     function loadWasmExec(): Promise<void> {
         return new Promise((resolve, reject) => {
             const existingScript = document.querySelector('script[src="/wasm_exec.cjs"]');
@@ -605,7 +605,7 @@ function Examples() {
             }
 
             const script = document.createElement("script");
-            script.src = "/wasm_exec.cjs"; // served from /public
+            script.src = "/wasm_exec.js"; // served from /public
             script.onload = () => resolve();
             script.onerror = () => reject(new Error("Failed to load wasm_exec.cjs"));
             document.body.appendChild(script);
