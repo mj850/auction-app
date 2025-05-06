@@ -793,7 +793,7 @@ function Examples() {
             setLeaderboard(result);
         } catch (e) {
             console.error("Failed to fetch leaderboard", e);
-        }
+        } 
     };
 
     return (
