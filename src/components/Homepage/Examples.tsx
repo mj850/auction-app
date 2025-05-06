@@ -21,7 +21,9 @@ function Examples() {
     // Auction variables
     const [bidsByRound, setBidsByRound] = useState<Record<number, any[]>>({});
     const [txHashes, setTxHashes] = useState<Record<number, string>>({});
-    const AuctionAddress = "0xFE5ea74f2425a8d606c02c4e8151b60436Ea5C59"
+    const AuctionAddress = import.meta.env.VITE_AUCTION_ADDRESS
+    const auctionAbi = JSON.parse(import.meta.env.VITE_AUCTION_ABI || '[]');
+
     const [roundStatuses, setRoundStatuses] = useState<Record<number, { settled: boolean, prize: bigint }>>({});
     const [numRounds, setNumRounds] = useState<number>(0);
     const [leaderboardOpen, setLeaderboardOpen] = useState(false);
