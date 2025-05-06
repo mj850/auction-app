@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "postinstall": "cp node_modules/@sei-js/confidential-transfers/dist/cjs/payload/wasm_exec.cjs public/",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview"
   },

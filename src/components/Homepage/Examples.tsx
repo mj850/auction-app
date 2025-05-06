@@ -23,7 +23,7 @@ function Examples() {
     const AuctionAddress = import.meta.env.VITE_AUCTION_ADDRESS
     const auctionAbi = JSON.parse(import.meta.env.VITE_AUCTION_ABI || '[]');
 
-    const [roundStatuses, setRoundStatuses] = useState<Record<number, { settled: boolean, prize: bigint }>>({});
+    const [roundStatuses, setRoundStatuses] = useState<Record<number, { settled: boolean, closed: boolean, prize: bigint }>>({});
     const [numRounds, setNumRounds] = useState<number>(0);
     const [leaderboardOpen, setLeaderboardOpen] = useState(false);
     const [leaderboard, setLeaderboard] = useState<{ address: string; balance: bigint }[]>([]);
@@ -78,7 +78,7 @@ function Examples() {
 
         const fetchRoundData = async () => {
             if (!publicClient) return;
-            const statusMap: Record<number, { settled: boolean, prize: bigint }> = {};
+            const statusMap: Record<number, { settled: boolean, closed: boolean, prize: bigint }> = {};
             await fetchNumRounds();
             for (let round = 0; round < Number(numRounds); round++) {
                 try {
@@ -89,9 +89,10 @@ function Examples() {
                         args: [BigInt(round)],
                     })
                     console.log("ROUND STATUS", roundStatus)
-                    if (Array.isArray(roundStatus) && typeof roundStatus[2] === 'boolean' && typeof roundStatus[0] === 'bigint') {
+                    if (Array.isArray(roundStatus) && typeof roundStatus[2] === 'boolean' && typeof roundStatus[3] === 'boolean' && typeof roundStatus[0] === 'bigint') {
                         statusMap[round] = {
                             settled: roundStatus[2],
+                            closed: roundStatus[3],
                             prize: roundStatus[0],
                         };
                     } else {
@@ -500,6 +501,7 @@ function Examples() {
     const renderAllBidCards = () => {
 
         return Array.from({ length: Number(numRounds) }, (_, round) => {
+            const closed = roundStatuses[round]?.closed ?? false;
             const settled = roundStatuses[round]?.settled ?? false;
             const prizeAmount = roundStatuses[round]?.prize ?? 0n;
 
@@ -507,7 +509,7 @@ function Examples() {
                 <div key={round} className="card">
                     <div className="card-header">
                         <p className="card__title">
-                            Round {round + 1}: Submit Bid {settled && <span style={{ color: "red" }}>[CLOSED]</span>}
+                            Round {round + 1}: Submit Bid {settled && <span style={{ color: "blue" }}>[SETTLED]</span> || closed && <span style={{ color: "red" }}>[CLOSED]</span>}
                         </p>
                         <small>Prize Pool: <strong>{prizeAmount.toString()}</strong> PRZ tokens</small>
                     </div>
